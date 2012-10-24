@@ -277,7 +277,7 @@ $q = $pdo->prepare('
     FROM worker_pool wp, pool p LEFT JOIN
         (SELECT wd.pool_id AS pool_id, count(*) AS count FROM work_data wd
          WHERE wd.worker_id = :worker
-          AND wd.time_requested + INTERVAL 1 HOUR >= NOW()
+          AND wd.time_requested + INTERVAL 1 HOUR >= UTC_TIMESTAMP()
          GROUP BY wd.pool_id) wd ON p.id = wd.pool_id
 
     WHERE wp.worker_id = :worker
