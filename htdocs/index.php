@@ -271,16 +271,21 @@ $q = $pdo->prepare('
         wp.pool_username AS username,
         wp.pool_password AS password,
         p.id AS id,
-        p.url AS url
+        p.url AS url,
+        if(ISNULL(wd.count),0,wd.count) AS count
 
-    FROM worker_pool wp, pool p
+    FROM worker_pool wp, pool p LEFT JOIN
+        (SELECT wd.pool_id AS pool_id, count(*) AS count FROM work_data wd
+         WHERE wd.worker_id = :worker
+          AND wd.time_requested + INTERVAL 1 HOUR >= NOW()
+         GROUP BY wd.pool_id) wd ON p.id = wd.pool_id
 
     WHERE wp.worker_id = :worker
       AND wp.pool_id = p.id
       AND wp.enabled
       AND p.enabled
 
-    ORDER BY wp.priority DESC
+    ORDER BY wp.priority DESC, count ASC
 ');
 
 $q->execute(array(':worker' => $worker_id));
